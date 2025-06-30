@@ -16,21 +16,6 @@ This project is an end-to-end ETL (Extract, Transform, Load) pipeline implemente
 
 ---
 
-##  Project Structure
-
-```
-
-├── exchange\_rate.csv              # Contains currency conversion rates
-├── code\_log.txt                   # Log file for process tracking
-├── Largest\_banks\_data.csv        # Output CSV with enriched data
-├── Banks.db                        # Output SQLite database
-├── etl\_banks.py                   # Main ETL script
-└── README.md                       # This file
-
-````
-
----
-
 ##  Prerequisites
 
 Make sure you have the following Python libraries installed:
@@ -38,7 +23,6 @@ Make sure you have the following Python libraries installed:
 ```bash
 pip install requests beautifulsoup4 pandas numpy
 ````
-
 ---
 
 ##  Input
