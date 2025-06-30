@@ -9,11 +9,11 @@ from datetime import datetime
 def log_progress(message):
     ''' This function logs the mentioned message of a given stage of the
     code execution to a log file. Function returns nothing'''
-    timestamp_format = '%Y-%b-%d-%H:%M:%S'
+    time_stamp_format = '%Y-%b-%d-%H:%M:%S'
     now = datetime.now()
-    timestamp = now.strftime(timestamp_format)
+    time_stamp = now.strftime(time_stamp_format)
     with open("code_log.txt", "a") as f:
-        f.write(timestamp + ' : ' + message + '\n')
+        f.write(time_stamp + ' : ' + message + '\n')
 
 def extract(url, table_attribs):
     ''' This function aims to extract the required
@@ -115,7 +115,6 @@ def run_query(query_statement, sql_connection):
         log_progress(f"Error executing query: {str(e)}")
 
 if __name__ == "__main__":
-    # Configuration
     url = 'https://web.archive.org/web/20230908091635/https://en.wikipedia.org/wiki/List_of_largest_banks'
     table_attribs = ["Name", "MC_USD_Billion"]
     db_name = 'Banks.db'
@@ -123,31 +122,43 @@ if __name__ == "__main__":
     csv_path = 'Largest_banks_data.csv'
     exchange_rate_file = 'exchange_rate.csv'
 
-    # Initialize log file
+    # Start fresh log
     with open("code_log.txt", "w") as f:
         f.write("ETL Process Log\n")
 
+    print("🔄 Starting ETL Process...\n")
     log_progress('Preliminaries complete. Initiating ETL process')
 
-    # ETL Process
+    # Extract
     df = extract(url, table_attribs)
 
     if not df.empty:
+        # Transform
         df = transform(df, exchange_rate_file)
+
+        # Load to CSV
         load_to_csv(df, csv_path)
 
+        # Load to DB & Run Queries
         try:
             with sqlite3.connect(db_name) as conn:
                 load_to_db(df, conn, table_name)
 
-                # Example queries
+                print("\n Top 5 Banks by Market Capitalization:")
                 run_query(f"SELECT * FROM {table_name} LIMIT 5", conn)
+
+                print("\n Average Market Capitalization (USD Billion):")
                 run_query(f"SELECT AVG(MC_USD_Billion) as Avg_MC_USD FROM {table_name}", conn)
+
+                print("\n Top 3 Banks by Market Capitalization:")
                 run_query(f"SELECT Name FROM {table_name} ORDER BY MC_USD_Billion DESC LIMIT 3", conn)
 
         except Exception as e:
             log_progress(f"Database connection error: {str(e)}")
+            print(f" Database Error: {str(e)}")
     else:
         log_progress('ETL process failed - no data extracted')
+        print(" Data extraction failed. No data to process.")
 
     log_progress('ETL process completed')
+    print("\n ETL Process Completed Successfully!")
